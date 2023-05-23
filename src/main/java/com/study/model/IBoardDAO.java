@@ -2,7 +2,7 @@ package com.study.model;
 
 import java.util.List;
 
-public interface iBoardDAO {
+public interface IBoardDAO {
 
     // 게시글 등록
     boolean insert(BoardVO vo);

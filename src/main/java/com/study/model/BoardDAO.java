@@ -3,15 +3,11 @@ package com.study.model;
 import com.study.connection.ConnectionTest;
 import com.study.util.JdbcUtil;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BoardDAO implements iBoardDAO {
+public class BoardDAO implements IBoardDAO {
 
 //    private DataSource ds;
     private ConnectionTest ct;

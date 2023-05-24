@@ -34,6 +34,12 @@ public class BoardDAO implements IBoardDAO {
     ResultSet rs = null;
 
 
+    /**
+     * 게시글 작성
+     * @param vo
+     * @return
+     */
+
     @Override
     public boolean insert(BoardVO vo) {
         boolean result = false;
@@ -66,7 +72,7 @@ public class BoardDAO implements IBoardDAO {
 
 
     /**
-     * 리스트 조회
+     * 글 목록 조회
      * @return
      */
     @Override
@@ -108,6 +114,12 @@ public class BoardDAO implements IBoardDAO {
         return bList;
     }
 
+
+    /**
+     * 글 상세조회
+     * @param bId
+     * @return
+     */
     @Override
     public BoardVO selectOne(int bId) {
         String sql = "select * from ebrainsoft_study.board where board_id=?";
@@ -147,6 +159,12 @@ public class BoardDAO implements IBoardDAO {
         return vo;
     }
 
+
+    /**
+     * 글 수정
+     * @param vo
+     * @return
+     */
     @Override
     public boolean update(BoardVO vo) {
         String sql = "update ebrainsoft.board set writer=?, title=?, content=?, file1=?, file2=?, file3=?" +
@@ -176,6 +194,13 @@ public class BoardDAO implements IBoardDAO {
         return true;
     }
 
+
+    /**
+     * 글 삭제
+     * @param bId
+     * @param pw
+     * @return
+     */
     @Override
     public boolean delete(int bId, String pw) {
         String sql = "update ebrainsoft_study.board set del_yn=1, del_dt=now() where board_id=?";
@@ -197,6 +222,11 @@ public class BoardDAO implements IBoardDAO {
         return true;
     }
 
+
+    /**
+     * 카테고리 조회
+     * @return
+     */
     @Override
     public List<String> selectCategory() {
         List<String> categories = new ArrayList<>();

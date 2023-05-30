@@ -13,7 +13,7 @@
 <html>
 <head>
     <h1>게시판 - 수정</h1>
-    <form action="modify_con.jsp" method="post">
+    <form action="update_con.jsp" method="post">
         <input type="hidden" name="bId" value="<%=vo.getbId()%>">
         카테고리* &nbsp;&nbsp;&nbsp; <select name="category" disabled>
             <%

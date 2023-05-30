@@ -2,6 +2,7 @@ package com.study.model;
 
 import com.study.connection.ConnectionTest;
 import com.study.util.JdbcUtil;
+import com.study.common.PageVO;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -43,8 +44,8 @@ public class BoardDAO implements IBoardDAO {
     @Override
     public boolean insert(BoardVO vo) {
         boolean result = false;
-        String sql = "insert into ebrainsoft_study.board(category, writer, pw, title, content, file1, file2, file3)" +
-                "values(?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO ebrainsoft_study.board(category, writer, pw, title, content, file1, file2, file3)" +
+                "VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         try {
 //            conn = ds.getConnection();
 
@@ -76,8 +77,13 @@ public class BoardDAO implements IBoardDAO {
      * @return
      */
     @Override
-    public List<BoardVO> selectAll() {
-        String sql = "select * from ebrainsoft_study.board where del_yn=0 order by reg_dt desc";
+    public List<BoardVO> selectAll(PageVO paging) {
+        String sql= "SELECT * FROM ("
+                + "SELECT ROWNUM AS rn, tbl.* FROM ("
+                + "SELECT * FROM ebrainsoft_study.board "
+                + "ORDER BY board_id DESC"
+                + ") tbl"
+                + ") WHERE rn > ? AND rn <= ?";
         List<BoardVO> bList = new ArrayList<>();
 
         try {
@@ -85,10 +91,13 @@ public class BoardDAO implements IBoardDAO {
             ConnectionTest ct = new ConnectionTest();
             conn = ct.getConnection();
             pstmt = conn.prepareStatement(sql);
+            int start = (paging.getPage() - 1) * paging.getCountPerPage();
+            pstmt.setInt(1, start);
+            pstmt.setInt(2, start + 10);
             rs = pstmt.executeQuery();
 
             while(rs.next()) {
-                BoardVO vo = new BoardVO(
+                BoardVO vo = new BoardVO(  //빌더패턴 binUtils populate
                         rs.getInt("board_id"),
                         rs.getInt("view_cnt"),
                         rs.getInt("del_yn"),
@@ -122,7 +131,7 @@ public class BoardDAO implements IBoardDAO {
      */
     @Override
     public BoardVO selectOne(int bId) {
-        String sql = "select * from ebrainsoft_study.board where board_id=?";
+        String sql = "SELECT * FROM ebrainsoft_study.board WHERE board_id=?";
         BoardVO vo = null;
         try {
 //            conn = ds.getConnection();
@@ -167,8 +176,8 @@ public class BoardDAO implements IBoardDAO {
      */
     @Override
     public boolean update(BoardVO vo) {
-        String sql = "update ebrainsoft.board set writer=?, title=?, content=?, file1=?, file2=?, file3=?" +
-                "where board_id=?";
+        String sql = "UPDATE ebrainsoft.board SET writer=?, title=?, content=?, file1=?, file2=?, file3=?" +
+                "WHERE board_id=?";
         try {
             //비밀번호 검증
             BoardVO oldVo = selectOne(vo.getbId());
@@ -203,7 +212,7 @@ public class BoardDAO implements IBoardDAO {
      */
     @Override
     public boolean delete(int bId, String pw) {
-        String sql = "update ebrainsoft_study.board set del_yn=1, del_dt=now() where board_id=?";
+        String sql = "UPDATE ebrainsoft_study.board SET del_yn=1, del_dt=now() WHERE board_id=?";
         try {
             //비밀번호 검증
             BoardVO oldVo = selectOne(bId);
@@ -230,7 +239,7 @@ public class BoardDAO implements IBoardDAO {
     @Override
     public List<String> selectCategory() {
         List<String> categories = new ArrayList<>();
-        String sql = "select category from ebrainsoft_study.index order by category asc";
+        String sql = "SELECT category FROM ebrainsoft_study.index ORDER BY category ASC";
         try {
 //            conn = ds.getConnection();
             ConnectionTest ct = new ConnectionTest();
@@ -246,5 +255,89 @@ public class BoardDAO implements IBoardDAO {
             JdbcUtil.close(conn, pstmt, rs);
         }
         return categories;
+    }
+
+    /**
+     * 글 조회
+     * @param keyword: 검색어
+     * @param category: 카테고리
+     * @return
+     */
+    @Override
+    public List<BoardVO> searchBoard(String keyword, String category) {
+        String sql="SELECT * FROM my_board WHERE " + category + " LIKE ? ORDER BY board_id DESC";
+        List<BoardVO> list = new ArrayList<>();
+        String newTitle = "%" + keyword + "%";
+
+        try {
+            ConnectionTest ct = new ConnectionTest();
+            conn = ct.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, newTitle);
+            rs = pstmt.executeQuery();
+            while(rs.next()) {
+                list.add(new BoardVO(
+                        rs.getInt("board_id"),
+                        rs.getInt("view_cnt"),
+                        rs.getInt("del_yn"),
+                        rs.getString("category"),
+                        rs.getString("writer"),
+                        rs.getString("pw"),
+                        rs.getString("title"),
+                        rs.getString("content"),
+                        rs.getString("file1"),
+                        rs.getString("file2"),
+                        rs.getString("file3"),
+                        rs.getDate("del_dt"),
+                        rs.getDate("mod_dt"),
+                        rs.getDate("reg_dt")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    /**
+     * 조회수 증가
+     * @param bId
+     */
+    public void upHit(int bId) {
+        String sql = "UPDATE my_board SET hit = hit+1 WHERE board_id=?";
+        try {
+            ConnectionTest ct = new ConnectionTest();
+            conn = ct.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, bId);
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * 전체 게시물 갯수 조회
+     * @return
+     */
+    public int countArticles() {
+        int count = 0;
+        String sql = "SELECT COUNT(*) FROM my_board";
+        try {
+            ConnectionTest ct = new ConnectionTest();
+            conn = ct.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+
+            if(rs.next()) {
+                count = rs.getInt("count(*)");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
     }
 }

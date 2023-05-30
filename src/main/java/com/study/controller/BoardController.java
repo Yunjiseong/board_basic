@@ -1,7 +1,6 @@
 package com.study.controller;
 
-import com.study.service.IBoardService;
-import com.study.service.WriteService;
+import com.study.service.*;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -55,6 +54,46 @@ public class BoardController extends HttpServlet {
                 sv = new WriteService();
                 sv.execute(req, res);
                 res.sendRedirect("/list.board");
+                break;
+            case "content":
+                logger.debug("글 상세보기 요청이 들어옴!");
+                sv = new ContentService();
+                sv.execute(req, res);
+
+                dp = req.getRequestDispatcher("board/content.jsp");
+                dp.forward(req, res);
+                break;
+            case "update-page":
+                logger.debug("글 수정페이지로 이동 요청!");
+                sv = new UpdateService();
+                sv.execute(req, res);
+                dp = req.getRequestDispatcher("board/update.jsp");
+                dp.forward(req, res);
+                break;
+
+            case "update":
+                logger.debug("글 수정 요청이 들어옴!");
+                sv = new UpdateService();
+                sv.execute(req, res);
+
+                res.sendRedirect("/content.board?bId=" + req.getParameter("bId"));
+                break;
+
+            case "delete":
+                logger.debug("글 삭제 요청이 들어옴!");
+                sv = new DeleteService();
+                sv.execute(req, res);
+                res.sendRedirect("/content.board");
+                break;
+
+            case "search":
+                logger.debug("글 검색 요청이 들어옴!");
+                sv = new SearchService();
+                sv.execute(req, res);
+                if(req.getAttribute("boardList") != null) {
+                    dp = req.getRequestDispatcher("board/board_list.jsp");
+                    dp.forward(req, res);
+                }
                 break;
         }
 

@@ -30,7 +30,7 @@
         <%=vo.getFile3()%> <br>
     </p>
     <a href="list.jsp">목록</a> &nbsp;
-    <a href="modify.jsp?bId=<%=vo.getbId()%>">수정</a>
+    <a href="update.jsp?bId=<%=vo.getbId()%>">수정</a>
     <a href="delete.jsp?bId=<%=vo.getbId()%>">삭제</a>
 </body>
 </html>
